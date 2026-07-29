@@ -59,18 +59,18 @@ class Bezier_Base:
         self._build_lut()
         self.total_length = self.lut[len(self.lut) - 1][1]
 
-    def get_piont(self, t):
+    def get_point(self, t):
         raise Exception("Get point method not implemented!")
 
     def _build_lut(self, steps=1000):
         """ Creates an array consisting of tuples (t_i, total_distance_from_beggining) with step entries. """
         self.lut = []
-        old_point = self.get_piont(0)
+        old_point = self.get_point(0)
         total_length = 0.0
         self.lut.append((old_point, total_length))
         for i in range(1, steps + 1):
             t = i / steps
-            point = self.get_piont(t)
+            point = self.get_point(t)
             total_length += get_distance(old_point, point)
             self.lut.append((t, total_length))
             old_point = point
@@ -99,7 +99,7 @@ class Bezier_Base:
         d_s = self.total_length / no_dots
         for i in range(no_dots + 1):
             t = self.get_t_from_length(i * d_s)
-            point = self.get_piont(t)
+            point = self.get_point(t)
             output.append(point)
         return list_round(output, 2)
 
@@ -117,30 +117,39 @@ class Bezier_Q(Bezier_Base):
         self._build_lut()
         self.total_length = self.lut[len(self.lut) - 1][1]
 
-    def get_piont(self, t):
+    def get_point(self, t):
         if t < 0 or t > 1:
             raise ValueError("t has to be in range <0, 1>")
         x = (1 - t)**2 * self.pionter[0] + 2 * (1 - t) * t * self.control_x + t**2 * self.end_x
         y = (1 - t)**2 * self.pionter[1] + 2 * (1 - t) * t * self.control_y + t**2 * self.end_y
         return (x, y)
 
-# class Bezier_C:
-#     """
-#     Class used to represent and calculate a C and c parameter of Path.
-#     """
+
+class Bezier_C(Bezier_Base):
+    """
+    Class used to represent and calculate a C and c parameter of Path.
+    """
+    def __init__(self, start, control_p1, control_p2, end_p):
+        self.pionter = start
+        self.control_x1 = control_p1[0]
+        self.control_y1 = control_p1[1]
+        self.control_x2 = control_p2[0]
+        self.control_y2 = control_p2[1]
+        self.end_x = end_p[0]
+        self.end_y = end_p[1]
+        self._build_lut()
+        self.total_length = self.lut[len(self.lut) - 1][1]
+
+    def get_point(self, t):
+        if t < 0 or t > 1:
+            raise ValueError("t has to be in range <0, 1>")
+        x = (1 - t)**3 * self.pionter[0] + 3 * (1 - t)**2 * t * self.control_x1 + 3 * (1 - t) * t**2 * self.control_x2 + t**3 * self.end_x
+        y = (1 - t)**3 * self.pionter[1] + 3 * (1 - t)**2 * t * self.control_y1 + 3 * (1 - t) * t**2 * self.control_y2 + t**3 * self.end_y
+        return (x, y)
 
 
-# def __init__(self, start, control_p1, control_p2, end_p):
-#     self.pionter = start
-#     self.control_x1 = control_p1[0]
-#     self.control_y1 = control_p1[1]
-#     self.control_x2 = control_p2[0]
-#     self.control_y2 = control_p2[1]
-#     self.end_x = end_p[0]
-#     self.end_y = end_p[1]
-#     self._build_lut()
-#     self.total_length = self.lut[len(self.lut) - 1][1]
 
+""" plotting
 ### control code to grafically plot the curve  
 
 #Bezier_Q
@@ -153,8 +162,19 @@ class Bezier_Q(Bezier_Base):
 # dots = bezier.create_dots(15)
 # x, y = zip(*dots)
 
-#line
+#Bezier_C
+# start_p = (0.0, 15)
+# control1 = (1, 1)
+# control2 = (15, 15)
+# end_p = (3, 1)
 
+# bezier = Bezier_C(start_p, control1, control2, end_p)
+# plt.plot([start_p[0], control1[0], control2[0], end_p[0]], [start_p[1], control1[1], control2[1], end_p[1]], 'r*', markersize=10)
+# dots = bezier.create_dots(15)
+# x, y = zip(*dots)
+
+
+#line
 # line = Line((0, 0), (0, 10))
 # dots = line.calculate_dots(5)
 # x, y = zip(*dots)
@@ -171,3 +191,4 @@ class Bezier_Q(Bezier_Base):
 
 # plt.grid(visible=True, which="both")
 # plt.show()
+"""
